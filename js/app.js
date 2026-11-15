@@ -416,7 +416,7 @@
     if (target) {
       if (target.tagName === 'DETAILS') { target.open = true; $$('textarea', target).forEach(grow); }
       const go = () => scrollTo({ top: target.getBoundingClientRect().top + scrollY - 64, behavior: 'auto' });
-      requestAnimationFrame(go); setTimeout(go, 250);
+      requestAnimationFrame(go); setTimeout(go, 250); setTimeout(go, 800);
     } else scrollTo(0, 0);
   }
   addEventListener('hashchange', route);
