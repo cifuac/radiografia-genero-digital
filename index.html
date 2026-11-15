@@ -6,19 +6,22 @@
 <title>Radiografía de un género digital</title>
 <meta name="description" content="Guía paso a paso, ficha de investigación y rúbrica para la exposición oral grupal sobre un género digital. Lengua y Literatura, 3° medio.">
 <meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="img/icon-180.png">
+<meta name="apple-mobile-web-app-title" content="Radiografía">
 <script>try{var t=localStorage.getItem("rgd:theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2306142a'/%3E%3Crect x='20' y='10' width='24' height='44' rx='5' fill='none' stroke='%235cc8ee' stroke-width='3'/%3E%3Cpath d='M25 26h14M25 33h14M25 40h8' stroke='%235cc8ee' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=8">
+<link rel="stylesheet" href="css/styles.css?v=9">
 </head>
 <body>
 
 <header class="top">
   <a class="brand" href="#inicio" aria-label="Ir al inicio">
     <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M9.5 9h5M9.5 12h5M9.5 15h3"/></svg>
-    <span>Radiografía de un género digital</span>
+    <span>Radiografía<i> de un género digital</i></span>
   </a>
   <a class="pill" href="#avance" id="topPill" aria-label="Ver avance">0/9</a>
   <button class="icon-btn" id="themeBtn" type="button" aria-label="Cambiar entre modo claro y oscuro">
@@ -38,6 +41,8 @@
     <p class="lead">Exposición oral grupal: guía paso a paso, ficha de investigación y rúbrica.</p>
   </div>
 
+
+  <a class="next" id="nextCard" href="#ruta"></a>
 
   <div class="facts">
     <div><small>Modalidad</small><b>Grupos de 3 a 4</b></div>
@@ -131,8 +136,10 @@
       </div>
 
       <h4>Ideas de géneros que pueden elegir</h4>
-      <p class="small">También pueden proponer otro. Toquen «Anotar» para dejarlo escrito en su ficha.</p>
+      <p class="small">Toquen «Anotar» para dejarlo escrito en su ficha. Si se equivocan, toquen «Quitar» o elijan otro: pueden cambiarlo las veces que quieran.</p>
+      <div class="gsel" id="gsel" hidden><span>Anotado en la ficha: <b id="gselName"></b></span><button class="btn" type="button" id="gselClear">Quitar</button></div>
       <div class="genres" id="genres"></div>
+      <p class="small">¿Su género no está en la lista? <a href="#ficha-genero">Escríbanlo directamente en la ficha →</a></p>
       <p class="small">* La plataforma es solo una pista: en el paso 4 ustedes deberán comprobar dónde circula más su género.</p>
 
       <h4>Reglas para elegir</h4>
@@ -149,7 +156,7 @@
         <p><b>Por qué lo elegimos:</b> lo vemos todos los días, hay miles de ejemplos públicos y en clases comprobamos que tiene reglas: un meme puede estar mal hecho.</p>
         <p><b>Prueba rápida:</b> cuando vemos una imagen conocida con una frase corta encima decimos «es un meme» aunque nunca hayamos visto esa publicación. Entonces sí es un género, y no una plataforma ni un tema.</p>
       </div>
-      <div class="pfoot"><a class="btn" href="#ficha-genero">Completar en la ficha →</a><button class="btn done" type="button" data-done="1"></button></div>
+      <div class="pfoot"><a class="btn" href="#ficha-genero">Completar en la ficha →</a><button class="btn done" type="button" data-done="1"></button><a class="btn nextp" href="#paso-2">Siguiente paso →</a></div>
     </div>
   </details>
 
@@ -172,7 +179,7 @@
         <div class="ej"><b class="code">E3</b><p>Foto de un perro con cara de susto y el texto «yo cuando dicen: saquen una hoja».</p><dl><dt>Plataforma y cuenta</dt><dd>Instagram, cuenta de humor chileno</dd><dt>Fechas</dt><dd>Publicado en nov. 2026; capturado el 4 de nov.</dd><dt>Interacción visible</dt><dd>8 mil me gusta</dd><dt>Por qué lo elegimos</dt><dd>No usa plantilla famosa, pero mantiene la estructura.</dd></dl></div>
         <div class="ej"><b class="code">E4</b><p>Una marca de comida rápida usa una plantilla de moda para promocionar una oferta.</p><dl><dt>Plataforma y cuenta</dt><dd>Instagram, cuenta oficial de una marca</dd><dt>Fechas</dt><dd>Publicado en oct. 2026; capturado el 4 de nov.</dd><dt>Interacción visible</dt><dd>900 me gusta</dd><dt>Por qué lo elegimos</dt><dd>Caso «raro»: el propósito cambia (vender).</dd></dl></div>
       </div>
-      <div class="pfoot"><a class="btn" href="#ficha-ejemplos">Completar en la ficha →</a><button class="btn done" type="button" data-done="2"></button></div>
+      <div class="pfoot"><a class="btn" href="#ficha-ejemplos">Completar en la ficha →</a><button class="btn done" type="button" data-done="2"></button><a class="btn nextp" href="#paso-3">Siguiente paso →</a></div>
     </div>
   </details>
 
@@ -234,7 +241,7 @@
         <p><span class="tag good">Lograda</span> «El meme busca hacer reír por identificación. En E1, la plantilla del novio distraído lleva las etiquetas “yo”, “ver una serie” y “la prueba de mañana”: la gracia aparece porque quien lo ve reconoce esa tentación como propia, y por eso lo comparte». Afirma, muestra y explica.</p>
         <p><b>Frases para empezar:</b> «Este género se usa para…» · «En todos nuestros ejemplos se repite…» · «Lo vemos en E2, donde…» · «Esto ocurre porque…»</p>
       </div>
-      <div class="pfoot"><a class="btn" href="#ficha-propiedades">Completar en la ficha →</a><button class="btn done" type="button" data-done="3"></button></div>
+      <div class="pfoot"><a class="btn" href="#ficha-propiedades">Completar en la ficha →</a><button class="btn done" type="button" data-done="3"></button><a class="btn nextp" href="#paso-4">Siguiente paso →</a></div>
     </div>
   </details>
 
@@ -261,7 +268,7 @@
         </ul>
         <p>Antes de usar una fuente, háganle tres preguntas: <b>¿quién la publica?, ¿de qué fecha es?, ¿puedo confirmar el dato en otro lugar?</b> De cada fuente anoten autor o institución, título, año y enlace.</p>
       </div>
-      <div class="pfoot"><a class="btn" href="#ficha-plataforma">Completar en la ficha →</a><button class="btn done" type="button" data-done="4"></button></div>
+      <div class="pfoot"><a class="btn" href="#ficha-plataforma">Completar en la ficha →</a><button class="btn done" type="button" data-done="4"></button><a class="btn nextp" href="#paso-5">Siguiente paso →</a></div>
     </div>
   </details>
 
@@ -283,14 +290,14 @@
         <p class="label">Cierre de la etapa 1</p>
         <p>Completen la <b>ficha de investigación</b> y entréguenla. El docente la devolverá con comentarios. Recién entonces pasen a la etapa 2: así no preparan un material sobre una investigación que todavía necesita ajustes.</p>
       </div>
-      <div class="pfoot"><a class="btn" href="#ficha-conexion">Completar en la ficha →</a><button class="btn done" type="button" data-done="5"></button></div>
+      <div class="pfoot"><a class="btn" href="#ficha-conexion">Completar en la ficha →</a><button class="btn done" type="button" data-done="5"></button><a class="btn nextp" href="#paso-6">Siguiente paso →</a></div>
     </div>
   </details>
 
   <!-- ETAPA 2 -->
   <div class="etapa" id="etapa-2">
     <div class="etapa-art"><img src="img/etapa2.webp" width="1280" height="714" alt="Ilustración: una mesa de trabajo con un computador, tarjetas de apuntes y un cronómetro, vista en rayos X" loading="lazy"></div>
-    <div><p class="eyebrow">Etapa 2 · Pasos 6 a 8</p><h2>Preparación</h2><p>Guion, material de apoyo y ensayo.</p><div class="bar"><i data-bar="2"></i></div></div>
+    <div><p class="eyebrow">Etapa 2 · Pasos 6 a 8</p><h2>Preparación</h2><p>Guion, material de apoyo y ensayo. Empiecen cuando el docente haya revisado su ficha.</p><div class="bar"><i data-bar="2"></i></div></div>
   </div>
 
   <details class="paso" id="paso-6" data-paso="6">
@@ -305,7 +312,7 @@
         <article><h4>5. Fuentes y preguntas <span class="time">2 min</span></h4><p class="q">Muestran sus fuentes y responden las preguntas del curso.</p><p class="m"><b>Cómo podría sonar:</b> «Estas son las fuentes que consultamos. ¿Qué preguntas tienen?»</p></article>
       </div>
       <p><b>Repartan los momentos:</b> cada integrante se hace cargo de al menos uno, pero todos deben poder responder preguntas sobre cualquier parte del trabajo.</p>
-      <div class="pfoot"><a class="btn" href="#ficha-organizacion">Anotar el reparto en la ficha →</a><button class="btn done" type="button" data-done="6"></button></div>
+      <div class="pfoot"><a class="btn" href="#ficha-organizacion">Anotar el reparto en la ficha →</a><button class="btn done" type="button" data-done="6"></button><a class="btn nextp" href="#paso-7">Siguiente paso →</a></div>
     </div>
   </details>
 
@@ -336,7 +343,7 @@
           <figcaption><span class="tag good">Lograda</span> Título: «Composición: plantilla + texto breve». La captura de E1 en grande, con dos flechas: «plantilla conocida» y «etiquetas que crean el chiste». Abajo, en pequeño: «Instagram · cuenta de memes · oct. 2026». El grupo explica mirando al curso.</figcaption>
         </figure>
       </div>
-      <div class="pfoot"><button class="btn done" type="button" data-done="7"></button></div>
+      <div class="pfoot"><button class="btn done" type="button" data-done="7"></button><a class="btn nextp" href="#paso-8">Siguiente paso →</a></div>
     </div>
   </details>
 
@@ -350,7 +357,7 @@
         <li><b>Prueben el material</b> en el computador o proyector de la sala y lleven una copia en PDF.</li>
         <li><b>Preparen respuestas para tres preguntas probables.</b> El grupo modelo anticipó estas: «¿Un meme puede informar o solo hacer reír?», «¿Quién es el autor de un meme?», «¿Por qué eligieron Instagram y no TikTok?».</li>
       </ul>
-      <div class="pfoot"><a class="btn" href="#avance-lista">Ver la lista de comprobación →</a><button class="btn done" type="button" data-done="8"></button></div>
+      <div class="pfoot"><a class="btn" href="#avance-lista">Ver la lista de comprobación →</a><button class="btn done" type="button" data-done="8"></button><a class="btn nextp" href="#paso-9">Siguiente paso →</a></div>
     </div>
   </details>
 
@@ -391,7 +398,12 @@
 <section class="view" id="v-ficha" data-view="ficha" hidden>
   <h1 class="vtitle">Ficha de investigación</h1>
   <p class="vsub">Se entrega al terminar la etapa 1. Lo que escriban se guarda solo en este celular. Los campos con <i class="req">*</i> son los que cuentan para el avance.</p>
+  <div class="callout warn" id="noStore" hidden>
+    <p class="label">Atención</p>
+    <p>Este navegador no está guardando lo que escriben (puede ser el modo privado o de incógnito). Abran el sitio en una ventana normal o copien la ficha como texto antes de salir.</p>
+  </div>
   <div class="meter"><div class="bar big"><i id="fichaBar"></i></div><span id="fichaTxt">0 %</span></div>
+  <p class="savenote" id="saveNote" role="status" aria-live="polite"></p>
   <div id="fichaForm"></div>
   <div class="callout">
     <p class="label">Revisión del docente</p>
@@ -406,7 +418,7 @@
   <p class="vsub">Los criterios 1 a 5 se evalúan <b>por grupo</b>; el criterio 6, <b>por integrante</b>. Cada criterio entrega entre 1 y 4 puntos. El nivel 3 (Logrado) describe lo que se espera de todos los grupos. <b>Total: 24 puntos.</b></p>
   <div class="callout modelo">
     <p class="label">Úsenla antes de exponer</p>
-    <p>Toquen en cada criterio el nivel que creen que alcanzan hoy. Abajo verán una estimación de puntaje y nota. Es solo una autoevaluación para decidir qué mejorar: la nota la pone el docente.</p>
+    <p>Toquen en cada criterio el nivel que creen que alcanzan hoy. Abajo verán una estimación de puntaje y nota. Es solo una autoevaluación para decidir qué mejorar: la nota la pone el docente. Para desmarcar un nivel, tóquenlo de nuevo.</p>
   </div>
   <div id="rubrica"></div>
   <div class="score" id="scoreBox">
@@ -444,24 +456,25 @@
     </div>
   </div>
 
-  <h2>Pasos</h2>
-  <div class="steps" id="stepList"></div>
-
-  <h2 id="avance-lista">Lista de comprobación antes de exponer</h2>
-  <div class="checks" id="checkList"></div>
-
   <h2>Enviar el avance</h2>
-  <p>Envíen su avance al profesor cada vez que terminen una etapa o cuando él lo pida. Al tocar el botón, llega directo a su planilla: curso, integrantes, pasos listos, porcentaje de la ficha, fechas y la ficha completa. Pueden enviarlo las veces que quieran; el profesor ve siempre el último envío.</p>
+  <p>Envíen su avance cada vez que terminen una etapa o cuando el profesor lo pida. Llega directo a su planilla, con la ficha completa. Pueden enviarlo las veces que quieran: el profesor ve siempre el último envío.</p>
   <div class="send">
     <button class="btn primary" type="button" id="sendBtn">Enviar avance al profesor</button>
     <button class="btn" type="button" id="linkBtn">Pasar la ficha a otro celular</button>
     <button class="btn" type="button" id="textBtn">Copiar la ficha como texto</button>
     <p class="status" id="sendStatus" role="status" aria-live="polite"></p>
+    <p class="small" id="lastSent"></p>
   </div>
   <div class="callout">
     <p class="label">Trabajo en varios celulares</p>
     <p>La ficha se guarda en el celular donde se escribe. Para que otro integrante la tenga, usen «Pasar la ficha a otro celular»: se crea un enlace que, al abrirlo, carga la ficha del grupo. Conviene que una sola persona escriba a la vez y luego comparta el enlace actualizado.</p>
   </div>
+
+  <h2>Pasos</h2>
+  <div class="steps" id="stepList"></div>
+
+  <h2 id="avance-lista">Lista de comprobación antes de exponer</h2>
+  <div class="checks" id="checkList"></div>
 
   <div class="danger">
     <button class="btn ghost" type="button" id="resetBtn">Borrar todo lo guardado en este celular</button>
@@ -478,7 +491,7 @@
   <a href="#avance" data-tab="avance"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Avance</span></a>
 </nav>
 
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button type="button" id="toastAct" hidden>Deshacer</button></div>
 
 <div class="modal" id="modal" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="modalT">
@@ -489,6 +502,6 @@
   </div>
 </div>
 
-<script src="js/app.js?v=8"></script>
+<script src="js/app.js?v=9"></script>
 </body>
 </html>

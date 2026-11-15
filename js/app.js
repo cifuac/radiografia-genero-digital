@@ -159,15 +159,23 @@
   const ALLK = new Set(FICHA.flatMap(s => allFields(s)).map(f => f.k));
 
   /* ------------------------------------------------------------ estado */
-  const blank = () => ({ v: 1, id: Math.random().toString(36).slice(2, 10), f: {}, pasos: {}, check: {}, rub: {}, t: 0 });
+  const blank = () => ({ v: 1, id: Math.random().toString(36).slice(2, 10), f: {}, pasos: {}, check: {}, rub: {}, t: 0, sent: 0 });
   function load() {
     try { const o = JSON.parse(localStorage.getItem(KEY)); if (o && o.v === 1) return Object.assign(blank(), o); } catch (e) { /* sin almacenamiento */ }
     return blank();
   }
   let S = load();
   let saveT;
-  const flush = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* sin almacenamiento */ } };
-  function save() { S.t = Date.now(); clearTimeout(saveT); saveT = setTimeout(flush, 250); refresh(); }
+  let canStore = true;
+  const note = msg => { const n = document.getElementById('saveNote'); if (n) n.textContent = msg; };
+  const flush = () => {
+    clearTimeout(saveT);
+    try { localStorage.setItem(KEY, JSON.stringify(S)); canStore = true; if (S.t) note('Guardado en este celular ✓'); }
+    catch (e) { canStore = false; note('No se pudo guardar en este navegador'); const w = document.getElementById('noStore'); if (w) w.hidden = false; }
+  };
+  function save() { S.t = Date.now(); note('Guardando…'); clearTimeout(saveT); saveT = setTimeout(flush, 250); refresh(); }
+  const pad = n => String(n).padStart(2, '0');
+  const when = ts => { const d = new Date(ts); return `${pad(d.getDate())}-${pad(d.getMonth() + 1)} a las ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
   addEventListener('pagehide', flush);
   document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
 
@@ -212,7 +220,7 @@
     $$('[data-k]').forEach(el => { el.value = S.f[el.dataset.k] || ''; });
   }
   function renderStatic() {
-    $('#genres').innerHTML = GENEROS.map(g => `<div class="genre" data-g="${esc(g[0])}"><b>${esc(g[0])}</b><p>${esc(g[1])}</p><small>Suele verse en: ${esc(g[2])}*</small><button class="btn" type="button">Anotar</button></div>`).join('');
+    $('#genres').innerHTML = GENEROS.map(g => `<div class="genre" data-g="${esc(g[0])}"><b>${esc(g[0])}</b><p>${esc(g[1])}</p><small>Suele verse en: ${esc(g[2])}*</small><button class="btn" type="button" aria-pressed="false">Anotar</button></div>`).join('');
     $('#rubrica').innerHTML = RUB.map((r, i) => `
       <details class="crit" data-c="${i + 1}"${i === 0 ? ' open' : ''}>
         <summary><div><small>Criterio ${i + 1} · ${r[1]}</small><b>${esc(r[0])}</b></div><span class="chip" data-chip="${i + 1}">—</span></summary>
@@ -231,7 +239,7 @@
       const n = +d.dataset.paso, on = !!S.pasos[n];
       d.classList.toggle('is-done', on);
       const b = $('[data-done]', d);
-      if (b) { b.classList.toggle('on', on); b.textContent = on ? '✓ Paso listo' : 'Marcar paso como listo'; b.setAttribute('aria-pressed', on); }
+      if (b) { b.classList.toggle('on', on); b.textContent = on ? '✓ Paso listo · desmarcar' : 'Marcar paso como listo'; b.setAttribute('aria-pressed', on); }
     });
     [1, 2, 3].forEach(e => { const ps = PASOS.filter(p => p[2] === e); const el = $(`[data-bar="${e}"]`); if (el) el.style.width = (100 * ps.filter(p => S.pasos[p[0]]).length / ps.length) + '%'; });
     $$('[data-step]').forEach(el => { const on = !!S.pasos[+el.dataset.step]; el.classList.toggle('on', on); $('.box', el).setAttribute('aria-pressed', on); });
@@ -245,13 +253,21 @@
       (s.groups || []).forEach((g, j) => cnt(g.fields, $(`[data-gcnt="${s.id}:${j}"]`)));
     });
     const g = val('genero').toLowerCase();
-    $$('.genre').forEach(el => el.classList.toggle('sel', !!g && el.dataset.g.toLowerCase() === g));
+    $$('.genre').forEach(el => { const on = !!g && el.dataset.g.toLowerCase() === g; el.classList.toggle('sel', on); const b = $('button', el); b.textContent = on ? '✓ Quitar' : 'Anotar'; b.setAttribute('aria-pressed', on); });
+    $('#gsel').hidden = !g; $('#gselName').textContent = val('genero');
+    // siguiente paso
+    const nx = PASOS.find(p => !S.pasos[p[0]]), card = $('#nextCard');
+    card.href = nx ? `#paso-${nx[0]}` : '#avance';
+    card.innerHTML = nx
+      ? `<small>${st.pasos.length ? 'Sigan aquí' : 'Empiecen aquí'} · Etapa ${nx[2]}</small><b>Paso ${nx[0]}. ${esc(nx[1])}</b><span>${st.pasos.length} de 9 pasos listos →</span>`
+      : '<small>¡Los 9 pasos están listos!</small><b>Revisen la lista final y envíen su avance</b><span>Ir a Avance →</span>';
     // rúbrica
     $$('.lvl').forEach(b => { const on = S.rub[+b.dataset.c] === +b.dataset.n; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
     $$('[data-chip]').forEach(c => { const v = S.rub[+c.dataset.chip]; c.textContent = v ? `${v} pts` : '—'; c.classList.toggle('set', !!v); });
     const full = st.rubN === RUB.length;
     $('#scorePts').textContent = st.rubN ? `${st.rubPts} / ${full ? 24 : st.rubN * 4}` : '— / 24';
     $('#scoreNota').textContent = full ? nota(st.rubPts) : (st.rubN ? `faltan ${RUB.length - st.rubN}` : '—');
+    $('#scoreBox').hidden = !st.rubN;
     $$('#conv div').forEach(d => d.classList.toggle('me', full && +d.dataset.p === st.rubPts));
     // avance
     $('#ringNum').textContent = st.pasos.length;
@@ -263,19 +279,39 @@
     $('#grpLine').textContent = (val('curso') || ints.length || val('genero'))
       ? [val('curso'), ints.join(', '), val('genero') && 'Género: ' + val('genero')].filter(Boolean).join(' · ')
       : 'Completen los datos del grupo en la ficha para identificar su avance.';
+    $('#lastSent').textContent = S.sent ? `Último envío al profesor: ${when(S.sent)}.` : 'Todavía no han enviado su avance desde este celular.';
   }
 
   /* ------------------------------------------------------------ interacción */
-  let toastT;
-  function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 3200); }
+  let toastT, undoFn = null;
+  function toast(msg, undo) {
+    const t = $('#toast'); $('#toastMsg').textContent = msg; undoFn = undo || null; $('#toastAct').hidden = !undoFn;
+    t.classList.toggle('has-act', !!undoFn); t.classList.add('show'); clearTimeout(toastT);
+    toastT = setTimeout(() => { t.classList.remove('show'); undoFn = null; }, undoFn ? 8000 : 3200);
+  }
+  $('#toastAct').onclick = () => { const f = undoFn; undoFn = null; $('#toast').classList.remove('show'); if (f) f(); };
   function grow(el) { if (el.tagName === 'TEXTAREA' && el.offsetParent) { el.style.height = 'auto'; el.style.height = (el.scrollHeight + 2) + 'px'; } }
+  let closeModal = null;
   function ask(title, text, okLabel, danger) {
+    if (closeModal) closeModal(false);
     return new Promise(res => {
-      const m = $('#modal'); $('#modalT').textContent = title; $('#modalP').textContent = text; $('#modalOk').textContent = okLabel; m.classList.toggle('is-danger', !!danger); m.hidden = false;
-      const done = v => { m.hidden = true; $('#modalOk').onclick = $('#modalNo').onclick = null; res(v); };
+      const m = $('#modal'), prev = document.activeElement;
+      $('#modalT').textContent = title; $('#modalP').textContent = text; $('#modalOk').textContent = okLabel; m.classList.toggle('is-danger', !!danger); m.hidden = false;
+      const onKey = e => { if (e.key === 'Escape') done(false); };
+      const done = v => { closeModal = null; m.hidden = true; $('#modalOk').onclick = $('#modalNo').onclick = m.onclick = null; document.removeEventListener('keydown', onKey); if (prev && prev.focus) prev.focus(); res(v); };
       $('#modalOk').onclick = () => done(true); $('#modalNo').onclick = () => done(false);
+      m.onclick = e => { if (e.target === m) done(false); };
+      document.addEventListener('keydown', onKey); closeModal = done;
+      (danger ? $('#modalNo') : $('#modalOk')).focus();
     });
   }
+  // Reemplaza todo lo guardado y permite volver atrás desde el aviso.
+  function replaceAll(next, msg) {
+    const backup = JSON.stringify(S);
+    S = next; flush(); renderFicha(); refresh();
+    toast(msg, () => { S = Object.assign(blank(), JSON.parse(backup)); flush(); renderFicha(); refresh(); toast('Listo: se recuperó lo que había antes.'); });
+  }
+  function setGenero(v) { S.f.genero = v; const inp = $('[data-k="genero"]'); if (inp) inp.value = v; save(); }
 
   const onField = e => {
     const k = e.target.dataset && e.target.dataset.k; if (!k || S.f[k] === e.target.value) return;
@@ -294,18 +330,23 @@
       const n = +t.dataset.check; S.check[n] = !S.check[n]; save();
     } else if (t.classList.contains('lvl')) {
       const c = +t.dataset.c, n = +t.dataset.n; if (S.rub[c] === n) delete S.rub[c]; else S.rub[c] = n; save();
-    } else if (t.closest('.genre')) {
-      const g = t.closest('.genre').dataset.g, cur = val('genero');
-      if (cur && cur.toLowerCase() !== g.toLowerCase() && !(await ask('Cambiar el género', `En la ficha ya está anotado «${cur}». ¿Reemplazarlo por «${g}»?`, 'Reemplazar'))) return;
-      S.f.genero = g; const inp = $('[data-k="genero"]'); if (inp) inp.value = g; save();
-      toast(`«${g}» quedó anotado en la ficha. Recuerden inscribirlo con el docente.`);
+    } else if (t.closest('.genre') || t.id === 'gselClear') {
+      const prev = S.f.genero || '', cur = val('genero');
+      const g = t.id === 'gselClear' ? cur : t.closest('.genre').dataset.g;
+      if (t.id === 'gselClear' || cur.toLowerCase() === g.toLowerCase()) {
+        setGenero(''); toast(`Se quitó «${g}» de la ficha.`, () => setGenero(prev)); return;
+      }
+      const listed = GENEROS.some(x => x[0].toLowerCase() === cur.toLowerCase());
+      if (cur && !listed && !(await ask('Cambiar el género', `En la ficha está escrito «${cur}». ¿Reemplazarlo por «${g}»?`, 'Reemplazar'))) return;
+      setGenero(g);
+      toast(cur ? `Cambiaron «${cur}» por «${g}».` : `«${g}» quedó anotado en la ficha.`, cur ? () => setGenero(prev) : null);
     }
   });
 
-  $('#rubClear').onclick = () => { S.rub = {}; save(); };
+  $('#rubClear').onclick = () => { const prev = Object.assign({}, S.rub); S.rub = {}; save(); toast('Se borró la autoevaluación.', () => { S.rub = prev; save(); }); };
   $('#resetBtn').onclick = async () => {
-    if (!(await ask('Borrar todo', 'Se borrarán la ficha, los pasos marcados y la autoevaluación guardados en este celular. No se puede deshacer.', 'Borrar todo', true))) return;
-    S = blank(); flush(); renderFicha(); refresh(); toast('Se borró lo guardado en este celular.');
+    if (!(await ask('Borrar todo', 'Se borrarán la ficha, los pasos marcados y la autoevaluación guardados en este celular.', 'Borrar todo', true))) return;
+    replaceAll(blank(), 'Se borró lo guardado en este celular.');
   };
 
   /* tema claro / oscuro */
@@ -397,6 +438,7 @@
     }
     if (sent) {
       const h = new Date(); const hora = String(h.getHours()).padStart(2, '0') + ':' + String(h.getMinutes()).padStart(2, '0');
+      S.sent = h.getTime(); flush(); refresh();
       status(`Avance enviado al profesor a las ${hora}. ✓`, true); toast('Avance enviado al profesor.'); return;
     }
     status('No se pudo enviar (¿hay conexión?). Compartan este resumen con el profesor:');
@@ -410,10 +452,11 @@
     history.replaceState(null, '', baseURL() + '#avance');
     if (!o) { toast('El enlace de la ficha está incompleto o dañado.'); return; }
     const who = [o.f.curso, ['int1', 'int2', 'int3', 'int4'].map(k => o.f[k]).filter(Boolean).join(', '), o.f.genero && 'Género: ' + o.f.genero].filter(Boolean).join('\n') || 'Grupo sin datos anotados';
-    const mine = Object.keys(S.f).some(k => val(k)) && S.id !== o.id;
-    if (await ask('Ficha compartida', who + (mine ? '\n\nSi la cargan, reemplazará la ficha que está guardada en este celular.' : '\n\n¿Cargarla en este celular?'), 'Cargar la ficha')) {
-      S = o; flush(); renderFicha(); refresh(); toast('Ficha cargada en este celular.');
-    }
+    const mine = Object.keys(S.f).some(k => val(k));
+    const text = who + (o.t ? `\nÚltimo cambio: ${when(o.t)}` : '') + (mine
+      ? `\n\nEn este celular ya hay una ficha guardada${S.t ? ` (último cambio: ${when(S.t)})` : ''}. Si cargan la compartida, la reemplazará.`
+      : '\n\n¿Cargarla en este celular?');
+    if (await ask('Ficha compartida', text, 'Cargar la ficha')) replaceAll(o, 'Ficha cargada en este celular.');
   }
 
   /* ------------------------------------------------------------ navegación */
@@ -424,6 +467,7 @@
     if (view === 'ficha') $$('#fichaForm textarea').forEach(grow);
   }
   function route() {
+    if (closeModal) closeModal(false);
     const h = decodeURIComponent(location.hash.slice(1));
     if (h.startsWith('g=')) { show('avance'); importFromHash(h.slice(2)); return; }
     let view = 'inicio', target = null;
@@ -440,5 +484,9 @@
   }
   addEventListener('hashchange', route);
 
+  try { localStorage.setItem('rgd:test', '1'); localStorage.removeItem('rgd:test'); } catch (e) { canStore = false; }
   renderStatic(); renderFicha(); refresh(); route();
+  if (!canStore) $('#noStore').hidden = false;
+  if (S.t) note('Guardado en este celular ✓');
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();
