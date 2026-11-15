@@ -95,6 +95,7 @@ main{max-width:720px;margin:0 auto;padding:0 16px}
 .btn:active{transform:translateY(3px);box-shadow:0 0 0 var(--line2)}
 .btn.primary{background:var(--yellow-f);border-color:var(--cta-edge);color:var(--ink);box-shadow:0 3px 0 var(--cta-edge)}
 .btn.primary:active{box-shadow:0 0 0 var(--cta-edge)}
+.btn:disabled{opacity:.6;cursor:default}
 .btn.ghost{background:transparent;border-color:transparent;box-shadow:none;color:var(--muted);font-weight:500;text-decoration:underline}
 .btn.done.on{background:var(--mint-t);border-color:var(--mint);color:var(--mint);box-shadow:0 3px 0 var(--mint)}
 .cta-row{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}

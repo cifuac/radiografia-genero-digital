@@ -2,8 +2,17 @@
 (() => {
   'use strict';
 
-  // Si se configura una planilla de seguimiento, aquí va la dirección del receptor.
-  const CONFIG = { endpoint: '' };
+  // Planilla de seguimiento: los avances se envían a un formulario de Google
+  // vinculado a una hoja de cálculo. Cada clave indica en qué columna cae el dato.
+  const CONFIG = {
+    form: 'https://docs.google.com/forms/d/e/1FAIpQLSffuHH21yEW75zRLFOb2BUzImSoGhzuhPkFfLI5Ty70bDoUvA/formResponse',
+    fields: {
+      id: 'entry.954917097', curso: 'entry.1728499470', integrantes: 'entry.2130728715', genero: 'entry.1325586198',
+      pasos: 'entry.455942961', pasosDetalle: 'entry.349220047', fichaPct: 'entry.1083551927', checklist: 'entry.1875904500',
+      estado: 'entry.1955398821', fechaFicha: 'entry.204930077', fechaExpo: 'entry.1041380925', plataforma: 'entry.1012259937',
+      auto: 'entry.1017019561', link: 'entry.202263602', ficha: 'entry.183009965'
+    }
+  };
 
   const KEY = 'rgd:v1';
   const THEME_KEY = 'rgd:theme';
@@ -368,19 +377,29 @@
 
   $('#sendBtn').onclick = async () => {
     if (!val('curso') || !val('int1')) { toast('Antes de enviar, anoten el curso y los integrantes en la ficha.'); location.hash = '#ficha-grupo'; return; }
-    flush(); status('Preparando el envío…');
+    const btn = $('#sendBtn'); if (btn.disabled) return;
+    btn.disabled = true; setTimeout(() => { btn.disabled = false; }, 5000);
+    flush(); status('Enviando el avance…');
     const st = stats(), link = await shareLink();
     let sent = false;
-    if (CONFIG.endpoint) {
+    if (CONFIG.form && navigator.onLine !== false) {
       try {
-        await fetch(CONFIG.endpoint, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({
+        const data = {
           id: S.id, curso: val('curso'), integrantes: ['int1', 'int2', 'int3', 'int4'].map(val).filter(Boolean).join(', '), genero: val('genero'),
           pasos: st.pasos.length, pasosDetalle: st.pasos.join(', '), fichaPct: st.pct, checklist: st.checks, estado: val('estado') || ESTADOS[0],
-          fechaFicha: fecha(val('fficha')), fechaExpo: fecha(val('fexpo')), plataforma: val('plataforma'), auto: st.rubN === RUB.length ? st.rubPts : '', link, ficha: fichaTexto() }) });
+          fechaFicha: fecha(val('fficha')), fechaExpo: fecha(val('fexpo')), plataforma: val('plataforma'), auto: st.rubN === RUB.length ? st.rubPts : '', link, ficha: fichaTexto()
+        };
+        const body = new URLSearchParams();
+        Object.entries(CONFIG.fields).forEach(([k, entry]) => body.append(entry, String(data[k] == null ? '' : data[k])));
+        await fetch(CONFIG.form, { method: 'POST', mode: 'no-cors', body });
         sent = true;
       } catch (e) { /* sin conexión */ }
     }
-    if (sent) { status('Avance enviado a la planilla del profesor. ✓', true); toast('Avance enviado al profesor.'); return; }
+    if (sent) {
+      const h = new Date(); const hora = String(h.getHours()).padStart(2, '0') + ':' + String(h.getMinutes()).padStart(2, '0');
+      status(`Avance enviado al profesor a las ${hora}. ✓`, true); toast('Avance enviado al profesor.'); return;
+    }
+    status('No se pudo enviar (¿hay conexión?). Compartan este resumen con el profesor:');
     await shareOrCopy('Avance del grupo', resumen(st, link), 'Listo: elijan al profesor como destinatario en la aplicación que se abrió.');
   };
   $('#linkBtn').onclick = async () => { flush(); const link = await shareLink(); await shareOrCopy('Ficha del grupo', 'Ficha de nuestro grupo (Radiografía de un género digital). Al abrir el enlace se carga en tu celular:\n' + link, 'Enlace compartido.'); };
