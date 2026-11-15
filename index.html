@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=9">
+<link rel="stylesheet" href="css/styles.css?v=10">
 </head>
 <body>
 
@@ -31,6 +31,11 @@
 </header>
 
 <main id="main">
+
+<div class="testbar" id="testBar" hidden>
+  <p><b>Modo de prueba del profesor.</b> Lo que hagas aquí se guarda aparte y ningún envío llega a la planilla.</p>
+  <div><button class="btn" type="button" id="demoBtn">Llenar con datos de ejemplo</button><a class="btn" href="./">Salir del modo de prueba</a></div>
+</div>
 
 <!-- ============================================================ INICIO -->
 <section class="view" id="v-inicio" data-view="inicio">
@@ -67,7 +72,7 @@
     <li><b>Ruta:</b> los 9 pasos, cada uno con un ejemplo resuelto. Al terminar un paso, márquenlo como listo.</li>
     <li><b>Ficha:</b> la ficha de investigación se completa aquí mismo y se guarda sola en este celular.</li>
     <li><b>Rúbrica:</b> revisen cómo se evalúa y estimen en qué nivel van.</li>
-    <li><b>Avance:</b> desde ahí envían su avance al profesor o pasan la ficha al celular de otro integrante.</li>
+    <li><b>Avance:</b> ahí juntan lo que cada integrante escribió en su celular y envían el avance al profesor.</li>
   </ol>
 
   <h2>1. Qué van a aprender</h2>
@@ -398,6 +403,7 @@
 <section class="view" id="v-ficha" data-view="ficha" hidden>
   <h1 class="vtitle">Ficha de investigación</h1>
   <p class="vsub">Se entrega al terminar la etapa 1. Lo que escriban se guarda solo en este celular. Los campos con <i class="req">*</i> son los que cuentan para el avance.</p>
+  <p class="tip">¿Trabajan en varios celulares? Cada integrante escribe su parte en el suyo y después <a href="#avance-grupo">juntan las fichas</a>.</p>
   <div class="callout warn" id="noStore" hidden>
     <p class="label">Atención</p>
     <p>Este navegador no está guardando lo que escriben (puede ser el modo privado o de incógnito). Abran el sitio en una ventana normal o copien la ficha como texto antes de salir.</p>
@@ -456,18 +462,25 @@
     </div>
   </div>
 
+  <h2 id="avance-grupo">Trabajo en grupo</h2>
+  <p>Cada integrante puede escribir en su propio celular. Para que todo quede en una sola ficha:</p>
+  <ol class="howto">
+    <li><b>Formen el grupo.</b> Quien empieza anota el curso y los integrantes, y comparte la ficha. Los demás abren ese enlace y quedan en el mismo grupo.</li>
+    <li><b>Repártanse las secciones</b> (ejemplos, propiedades, plataforma…). Si dos escriben la misma casilla en celulares distintos, queda lo último que se escribió.</li>
+    <li><b>Junten antes de enviar.</b> Cada uno comparte su ficha con quien va a enviar. Al abrir cada enlace, las fichas se juntan.</li>
+  </ol>
+  <div class="send">
+    <button class="btn" type="button" id="linkBtn">Compartir la ficha con mi grupo</button>
+    <div class="paste"><input type="text" id="pasteLink" placeholder="O peguen aquí un enlace recibido" autocomplete="off" aria-label="Pegar un enlace de ficha recibido"><button class="btn" type="button" id="pasteBtn">Abrir</button></div>
+  </div>
+
   <h2>Enviar el avance</h2>
-  <p>Envíen su avance cada vez que terminen una etapa o cuando el profesor lo pida. Llega directo a su planilla, con la ficha completa. Pueden enviarlo las veces que quieran: el profesor ve siempre el último envío.</p>
+  <p>Cuando la ficha de este celular tenga lo de todos, envíenla. Llega directo a la planilla del profesor y reemplaza al envío anterior del grupo.</p>
   <div class="send">
     <button class="btn primary" type="button" id="sendBtn">Enviar avance al profesor</button>
-    <button class="btn" type="button" id="linkBtn">Pasar la ficha a otro celular</button>
     <button class="btn" type="button" id="textBtn">Copiar la ficha como texto</button>
     <p class="status" id="sendStatus" role="status" aria-live="polite"></p>
     <p class="small" id="lastSent"></p>
-  </div>
-  <div class="callout">
-    <p class="label">Trabajo en varios celulares</p>
-    <p>La ficha se guarda en el celular donde se escribe. Para que otro integrante la tenga, usen «Pasar la ficha a otro celular»: se crea un enlace que, al abrirlo, carga la ficha del grupo. Conviene que una sola persona escriba a la vez y luego comparta el enlace actualizado.</p>
   </div>
 
   <h2>Pasos</h2>
@@ -491,6 +504,11 @@
   <a href="#avance" data-tab="avance"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Avance</span></a>
 </nav>
 
+<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-labelledby="viewerTitle">
+  <div class="viewer-top"><h2 id="viewerTitle"></h2><button class="btn" type="button" id="viewerClose">Cerrar</button></div>
+  <div class="viewer-body" id="viewerBody"></div>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button type="button" id="toastAct" hidden>Deshacer</button></div>
 
 <div class="modal" id="modal" hidden>
@@ -502,6 +520,6 @@
   </div>
 </div>
 
-<script src="js/app.js?v=9"></script>
+<script src="js/app.js?v=10"></script>
 </body>
 </html>

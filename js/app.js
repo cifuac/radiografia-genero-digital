@@ -14,7 +14,10 @@
     }
   };
 
-  const KEY = 'rgd:v1';
+  // Modo de prueba del profesor: ?prueba=1 usa datos aparte y no envía nada a la planilla.
+  const TEST = new URLSearchParams(location.search).has('prueba');
+  const KEY = TEST ? 'rgd:v1:prueba' : 'rgd:v1';
+  const MERGED = 'Unido a otro celular del grupo';
   const THEME_KEY = 'rgd:theme';
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -159,7 +162,7 @@
   const ALLK = new Set(FICHA.flatMap(s => allFields(s)).map(f => f.k));
 
   /* ------------------------------------------------------------ estado */
-  const blank = () => ({ v: 1, id: Math.random().toString(36).slice(2, 10), f: {}, pasos: {}, check: {}, rub: {}, t: 0, sent: 0 });
+  const blank = () => ({ v: 1, id: Math.random().toString(36).slice(2, 10), f: {}, pasos: {}, check: {}, rub: {}, m: {}, c: 0, tomb: [], t: 0, sent: 0 });
   function load() {
     try { const o = JSON.parse(localStorage.getItem(KEY)); if (o && o.v === 1) return Object.assign(blank(), o); } catch (e) { /* sin almacenamiento */ }
     return blank();
@@ -174,12 +177,18 @@
     catch (e) { canStore = false; note('No se pudo guardar en este navegador'); const w = document.getElementById('noStore'); if (w) w.hidden = false; }
   };
   function save() { S.t = Date.now(); note('Guardando…'); clearTimeout(saveT); saveT = setTimeout(flush, 250); refresh(); }
+  const now = () => Math.floor(Date.now() / 1000);
+  const touch = key => { S.m[key] = now(); if (!S.c) S.c = now(); };
   const pad = n => String(n).padStart(2, '0');
   const when = ts => { const d = new Date(ts); return `${pad(d.getDate())}-${pad(d.getMonth() + 1)} a las ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
   addEventListener('pagehide', flush);
   document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
 
   const val = k => (S.f[k] || '').trim();
+  const ints = () => ['int1', 'int2', 'int3', 'int4'].map(val).filter(Boolean).join(', ');
+  const hasData = o => Object.keys(o.f).some(k => (o.f[k] || '').trim()) || Object.keys(o.pasos).some(k => o.pasos[k]);
+  // Ejecuta una función leyendo otra ficha (p. ej. una compartida) sin tocar la de este celular.
+  function withState(o, fn) { const keep = S; S = o; try { return fn(); } finally { S = keep; } }
   const nota = p => { const c = 14.4; const n = p < c ? 1 + 3 * (p / c) : 4 + 3 * ((p - c) / (24 - c)); return (n + 1e-9).toFixed(1).replace('.', ','); };
   const fecha = v => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ''); return m ? `${m[3]}-${m[2]}-${m[1]}` : ''; };
 
@@ -311,11 +320,11 @@
     S = next; flush(); renderFicha(); refresh();
     toast(msg, () => { S = Object.assign(blank(), JSON.parse(backup)); flush(); renderFicha(); refresh(); toast('Listo: se recuperó lo que había antes.'); });
   }
-  function setGenero(v) { S.f.genero = v; const inp = $('[data-k="genero"]'); if (inp) inp.value = v; save(); }
+  function setGenero(v) { S.f.genero = v; touch('f:genero'); const inp = $('[data-k="genero"]'); if (inp) inp.value = v; save(); }
 
   const onField = e => {
     const k = e.target.dataset && e.target.dataset.k; if (!k || S.f[k] === e.target.value) return;
-    S.f[k] = e.target.value; grow(e.target); save();
+    S.f[k] = e.target.value; touch('f:' + k); grow(e.target); save();
   };
   document.addEventListener('input', onField);
   document.addEventListener('change', onField);
@@ -324,12 +333,12 @@
   document.addEventListener('click', async e => {
     const t = e.target.closest('button'); if (!t) return;
     if (t.dataset.done || t.dataset.toggle) {
-      const n = +(t.dataset.done || t.dataset.toggle); S.pasos[n] = !S.pasos[n]; save();
+      const n = +(t.dataset.done || t.dataset.toggle); S.pasos[n] = !S.pasos[n]; touch('p:' + n); save();
       if (S.pasos[n]) toast(`Paso ${n} listo. Van ${stats().pasos.length} de 9.`);
     } else if (t.dataset.check) {
-      const n = +t.dataset.check; S.check[n] = !S.check[n]; save();
+      const n = +t.dataset.check; S.check[n] = !S.check[n]; touch('c:' + n); save();
     } else if (t.classList.contains('lvl')) {
-      const c = +t.dataset.c, n = +t.dataset.n; if (S.rub[c] === n) delete S.rub[c]; else S.rub[c] = n; save();
+      const c = +t.dataset.c, n = +t.dataset.n; if (S.rub[c] === n) delete S.rub[c]; else S.rub[c] = n; touch('r:' + c); save();
     } else if (t.closest('.genre') || t.id === 'gselClear') {
       const prev = S.f.genero || '', cur = val('genero');
       const g = t.id === 'gselClear' ? cur : t.closest('.genre').dataset.g;
@@ -343,7 +352,7 @@
     }
   });
 
-  $('#rubClear').onclick = () => { const prev = Object.assign({}, S.rub); S.rub = {}; save(); toast('Se borró la autoevaluación.', () => { S.rub = prev; save(); }); };
+  $('#rubClear').onclick = () => { const prev = Object.assign({}, S.rub); const all = () => [1, 2, 3, 4, 5, 6].forEach(c => touch('r:' + c)); S.rub = {}; all(); save(); toast('Se borró la autoevaluación.', () => { S.rub = prev; all(); save(); }); };
   $('#resetBtn').onclick = async () => {
     if (!(await ask('Borrar todo', 'Se borrarán la ficha, los pasos marcados y la autoevaluación guardados en este celular.', 'Borrar todo', true))) return;
     replaceAll(blank(), 'Se borró lo guardado en este celular.');
@@ -374,17 +383,44 @@
     Object.entries(o.f || {}).forEach(([k, v]) => { if (ALLK.has(k) && typeof v === 'string') n.f[k] = v.slice(0, 4000); });
     for (let i = 1; i <= 9; i++) { if (o.pasos && o.pasos[i]) n.pasos[i] = true; if (o.check && o.check[i]) n.check[i] = true; }
     for (let i = 1; i <= 6; i++) { const v = o.rub && +o.rub[i]; if (v >= 1 && v <= 4) n.rub[i] = Math.round(v); }
+    Object.entries(o.m || {}).forEach(([k, v]) => { if (/^(f:[a-z0-9_]+|[pcr]:\d)$/.test(k) && +v > 0) n.m[k] = Math.floor(+v); });
+    n.c = +o.c > 0 ? Math.floor(+o.c) : 0;
     n.t = +o.t || 0; return n;
   }
-  const baseURL = () => location.origin + location.pathname;
-  async function shareLink() { const data = { id: S.id, f: {}, pasos: S.pasos, check: S.check, rub: S.rub, t: S.t }; Object.keys(S.f).forEach(k => { if (val(k)) data.f[k] = S.f[k]; }); return baseURL() + '#g=' + await pack(data); }
+  // Junta dos fichas casilla por casilla: en cada una queda lo último que se escribió.
+  function merge(L, I) {
+    const R = JSON.parse(JSON.stringify(L)); const info = { added: 0, changed: 0, kept: 0 };
+    const ts = (o, k) => (o.m && o.m[k]) || 0;
+    ALLK.forEach(k => {
+      const lv = L.f[k] || '', iv = I.f[k] || ''; if (lv === iv) return;
+      const lt = ts(L, 'f:' + k), it = ts(I, 'f:' + k);
+      if (it > lt || (it === lt && !lv.trim() && iv.trim())) { R.f[k] = iv; if (lv.trim()) info.changed++; else info.added++; }
+      else if (iv.trim()) info.kept++;
+    });
+    const flags = (name, pre, max) => { for (let n = 1; n <= max; n++) {
+      const lt = ts(L, pre + n), it = ts(I, pre + n), lv = L[name][n], iv = I[name][n];
+      if (it > lt || (it === lt && !lv && iv)) { if (iv) R[name][n] = iv; else delete R[name][n]; }
+    } };
+    flags('pasos', 'p:', 9); flags('check', 'c:', 9); flags('rub', 'r:', 6);
+    Object.keys(I.m || {}).forEach(k => { if ((I.m[k] || 0) > (R.m[k] || 0)) R.m[k] = I.m[k]; });
+    // Identidad del grupo: prevalece la del grupo más antiguo, para que todos queden en la misma fila de la planilla.
+    const iWins = !hasData(L) || (I.c && (!L.c || I.c < L.c)) || (I.c === L.c && I.id < L.id);
+    if (iWins && I.id !== L.id) { if (L.sent) R.tomb = (R.tomb || []).concat(L.id); R.id = I.id; R.c = I.c || L.c || now(); R.sent = 0; }
+    R.t = Date.now(); return { state: R, info };
+  }
+  const baseURL = () => location.origin + location.pathname + (TEST ? '?prueba=1' : '');
+  // kind 'g': enlace para el grupo (se junta con la ficha de quien lo abre). kind 'v': solo lectura, para el profesor.
+  async function shareLink(kind = 'g') {
+    const data = { id: S.id, c: S.c, f: {}, pasos: S.pasos, check: S.check, rub: S.rub, t: S.t };
+    if (kind === 'g') { data.f = S.f; data.m = S.m; } else Object.keys(S.f).forEach(k => { if (val(k)) data.f[k] = S.f[k]; });
+    return baseURL() + '#' + kind + '=' + await pack(data);
+  }
 
   function resumen(st, link) {
-    const ints = ['int1', 'int2', 'int3', 'int4'].map(val).filter(Boolean).join(', ');
     return [
       'Radiografía de un género digital · Avance del grupo',
       `Curso: ${val('curso') || '(sin anotar)'}`,
-      `Integrantes: ${ints || '(sin anotar)'}`,
+      `Integrantes: ${ints() || '(sin anotar)'}`,
       `Género: ${val('genero') || '(sin anotar)'}`,
       `Pasos listos: ${st.pasos.length} de 9${st.pasos.length ? ' (' + st.pasos.join(', ') + ')' : ''}`,
       `Ficha de investigación: ${st.pct} % (${st.filled} de ${st.total} campos)`,
@@ -416,47 +452,137 @@
     status((await copy(text)) ? 'Copiado. Péguenlo en el mensaje para el profesor o para su grupo.' : 'No se pudo copiar automáticamente en este navegador.', true);
   }
 
+  async function post(data) {
+    const body = new URLSearchParams();
+    Object.entries(CONFIG.fields).forEach(([k, entry]) => body.append(entry, String(data[k] == null ? '' : data[k])));
+    await fetch(CONFIG.form, { method: 'POST', mode: 'no-cors', body });
+  }
+  // Si este celular cambió de identidad al unirse al grupo, avisa a la planilla para que no quede una fila duplicada.
+  async function sendTombs() {
+    if (TEST || !CONFIG.form || !S.tomb || !S.tomb.length || navigator.onLine === false) return;
+    for (const id of S.tomb.slice()) {
+      try { await post({ id, curso: val('curso'), integrantes: ints(), genero: val('genero'), estado: MERGED }); S.tomb = S.tomb.filter(x => x !== id); } catch (e) { break; }
+    }
+    flush();
+  }
+
   $('#sendBtn').onclick = async () => {
     if (!val('curso') || !val('int1')) { toast('Antes de enviar, anoten el curso y los integrantes en la ficha.'); location.hash = '#ficha-grupo'; return; }
     const btn = $('#sendBtn'); if (btn.disabled) return;
+    const st = stats();
+    if (!(await ask('Enviar el avance', `Pasos listos: ${st.pasos.length} de 9\nFicha de investigación: ${st.pct} %\n\nEste envío reemplaza al anterior de su grupo en la planilla del profesor. Si alguien escribió en otro celular, junten primero las fichas.`, 'Enviar'))) return;
     btn.disabled = true; setTimeout(() => { btn.disabled = false; }, 5000);
     flush(); status('Enviando el avance…');
-    const st = stats(), link = await shareLink();
+    const link = await shareLink('v');
+    if (TEST) {
+      status('Modo de prueba: este envío no llegó a la planilla.', true);
+      showViewer(JSON.parse(JSON.stringify(S)), 'Así verá el profesor esta ficha'); return;
+    }
     let sent = false;
     if (CONFIG.form && navigator.onLine !== false) {
       try {
-        const data = {
-          id: S.id, curso: val('curso'), integrantes: ['int1', 'int2', 'int3', 'int4'].map(val).filter(Boolean).join(', '), genero: val('genero'),
+        await sendTombs();
+        await post({
+          id: S.id, curso: val('curso'), integrantes: ints(), genero: val('genero'),
           pasos: st.pasos.length, pasosDetalle: st.pasos.join(', '), fichaPct: st.pct, checklist: st.checks, estado: val('estado') || ESTADOS[0],
           fechaFicha: fecha(val('fficha')), fechaExpo: fecha(val('fexpo')), plataforma: val('plataforma'), auto: st.rubN === RUB.length ? st.rubPts : '', link, ficha: fichaTexto().trim().replace(/\n+/g, ' // ')
-        };
-        const body = new URLSearchParams();
-        Object.entries(CONFIG.fields).forEach(([k, entry]) => body.append(entry, String(data[k] == null ? '' : data[k])));
-        await fetch(CONFIG.form, { method: 'POST', mode: 'no-cors', body });
+        });
         sent = true;
       } catch (e) { /* sin conexión */ }
     }
     if (sent) {
-      const h = new Date(); const hora = String(h.getHours()).padStart(2, '0') + ':' + String(h.getMinutes()).padStart(2, '0');
+      const h = new Date(); const hora = pad(h.getHours()) + ':' + pad(h.getMinutes());
       S.sent = h.getTime(); flush(); refresh();
       status(`Avance enviado al profesor a las ${hora}. ✓`, true); toast('Avance enviado al profesor.'); return;
     }
     status('No se pudo enviar (¿hay conexión?). Compartan este resumen con el profesor:');
     await shareOrCopy('Avance del grupo', resumen(st, link), 'Listo: elijan al profesor como destinatario en la aplicación que se abrió.');
   };
-  $('#linkBtn').onclick = async () => { flush(); const link = await shareLink(); await shareOrCopy('Ficha del grupo', 'Ficha de nuestro grupo (Radiografía de un género digital). Al abrir el enlace se carga en tu celular:\n' + link, 'Enlace compartido.'); };
+  $('#linkBtn').onclick = async () => { flush(); const link = await shareLink('g'); await shareOrCopy('Ficha del grupo', 'Ficha de nuestro grupo (Radiografía de un género digital). Ábrelo en tu celular para unirte al grupo o para juntar lo que escribiste:\n' + link, 'Enlace compartido con el grupo.'); };
   $('#textBtn').onclick = async () => { status((await copy(fichaTexto())) ? 'Ficha copiada como texto. Pueden pegarla en un documento o en un mensaje.' : 'No se pudo copiar automáticamente en este navegador.', true); };
+  $('#pasteBtn').onclick = () => {
+    const m = /#([gv])=([A-Za-z0-9_-]+)/.exec($('#pasteLink').value);
+    if (!m) { toast('Ese texto no trae un enlace de ficha. Peguen el enlace completo.'); return; }
+    $('#pasteLink').value = ''; openShared(m[1], m[2]);
+  };
 
-  async function importFromHash(data) {
+  /* ------------------------------------------------------------ fichas compartidas */
+  const describe = o => withState(o, () => [val('curso'), ints(), val('genero') && 'Género: ' + val('genero')].filter(Boolean).join('\n') || 'Grupo sin datos anotados');
+  function applyMerge(o, msg) {
+    const { state, info } = merge(S, o);
+    const n = (k, uno, varios) => `${k} ${k === 1 ? uno : varios}`;
+    const parts = [info.added && n(info.added, 'casilla nueva', 'casillas nuevas'), info.changed && n(info.changed, 'actualizada', 'actualizadas'), info.kept && n(info.kept, 'de este celular se mantuvo por ser más reciente', 'de este celular se mantuvieron por ser más recientes')].filter(Boolean);
+    replaceAll(state, msg || (parts.length ? `Fichas juntadas: ${parts.join(', ')}.` : 'Fichas juntadas: no había diferencias.'));
+    sendTombs();
+  }
+  async function openShared(kind, data) {
     let o = null; try { o = clean(await unpack(data)); } catch (e) { /* enlace dañado */ }
     history.replaceState(null, '', baseURL() + '#avance');
     if (!o) { toast('El enlace de la ficha está incompleto o dañado.'); return; }
-    const who = [o.f.curso, ['int1', 'int2', 'int3', 'int4'].map(k => o.f[k]).filter(Boolean).join(', '), o.f.genero && 'Género: ' + o.f.genero].filter(Boolean).join('\n') || 'Grupo sin datos anotados';
-    const mine = Object.keys(S.f).some(k => val(k));
-    const text = who + (o.t ? `\nÚltimo cambio: ${when(o.t)}` : '') + (mine
-      ? `\n\nEn este celular ya hay una ficha guardada${S.t ? ` (último cambio: ${when(S.t)})` : ''}. Si cargan la compartida, la reemplazará.`
-      : '\n\n¿Cargarla en este celular?');
-    if (await ask('Ficha compartida', text, 'Cargar la ficha')) replaceAll(o, 'Ficha cargada en este celular.');
+    if (kind === 'v') { showViewer(o, 'Ficha del grupo (solo lectura)'); return; }
+    const who = describe(o) + (o.t ? `\nÚltimo cambio: ${when(o.t)}` : '');
+    if (!hasData(S)) {
+      if (await ask('Unirse al grupo', who + '\n\nEste celular quedará en ese grupo y recibirá su ficha. Lo que escriban aquí se podrá juntar después con lo de sus compañeros.', 'Unirme al grupo')) applyMerge(o, 'Listo: este celular ya es parte del grupo.');
+      return;
+    }
+    if (await ask('Juntar fichas', who + '\n\nSe juntará con la ficha de este celular: en cada casilla queda lo último que se escribió. Si algo no queda bien, podrán deshacerlo.', 'Juntar')) applyMerge(o);
+  }
+  const vrow = (l, v) => `<div class="vrow"><small>${esc(l)}</small><p${v ? '' : ' class="empty"'}>${v ? esc(v) : 'Sin completar'}</p></div>`;
+  function showViewer(o, title) {
+    $('#viewerTitle').textContent = title;
+    $('#viewerBody').innerHTML = withState(o, () => {
+      const st = stats();
+      const head = `<p class="vwho">${esc([val('curso'), ints()].filter(Boolean).join(' · ') || 'Grupo sin datos anotados')}</p>
+        <div class="vstats"><div><small>Pasos listos</small><b>${st.pasos.length}/9</b></div><div><small>Ficha</small><b>${st.pct} %</b></div><div><small>Lista final</small><b>${st.checks}/9</b></div><div><small>Autoeval.</small><b>${st.rubN === RUB.length ? st.rubPts + '/24' : '—'}</b></div></div>
+        <p class="small">${st.pasos.length ? 'Pasos marcados: ' + st.pasos.join(', ') + '.' : 'Aún no hay pasos marcados.'}${o.t ? ' Último cambio: ' + when(o.t) + '.' : ''}</p>`;
+      return head + FICHA.map(s => `<section><h3>${esc(s.t)}</h3>${(s.fields || []).map(f => vrow(f.l, f.type === 'date' ? fecha(val(f.k)) : val(f.k))).join('')}${(s.groups || []).map(g => {
+        if (g.opt && !g.fields.some(f => val(f.k))) return '';
+        return `<h4>${esc(g.t)}</h4>` + g.fields.filter(f => val(f.k) || f.req).map(f => vrow(f.l, val(f.k))).join('');
+      }).join('')}</section>`).join('');
+    });
+    $('#viewer').hidden = false; $('#viewer').scrollTop = 0; document.body.classList.add('noscroll');
+  }
+  const hideViewer = () => { $('#viewer').hidden = true; document.body.classList.remove('noscroll'); };
+  $('#viewerClose').onclick = hideViewer;
+
+  /* ------------------------------------------------------------ modo de prueba del profesor */
+  function demoState() {
+    const d = blank(); const E = (n, que, plat, fechas, inter, porque) => Object.assign(d.f, { [`e${n}_que`]: que, [`e${n}_plat`]: plat, [`e${n}_fechas`]: fechas, [`e${n}_inter`]: inter, [`e${n}_porque`]: porque });
+    Object.assign(d.f, {
+      curso: '3° medio A (prueba)', int1: 'Estudiante Uno', int2: 'Estudiante Dos', int3: 'Estudiante Tres',
+      genero: 'el meme de imagen con texto',
+      porque: 'Cuando vemos una imagen conocida con una frase corta encima decimos «es un meme», aunque nunca hayamos visto esa publicación. Entonces es un género, y no una plataforma ni un tema.',
+      p1_af: 'Busca hacer reír por identificación y mostrar que se pertenece a un grupo.', p1_ej: 'En E1 y E3 la gracia depende de reconocer una situación propia: por eso en los comentarios se repite «soy yo».',
+      p2_af: 'Trata situaciones cotidianas y compartidas (el colegio, la familia, dejar todo para el final) y hechos de actualidad.', p2_ej: 'E1 y E2 hablan de dejar el estudio para después; ninguno explica un tema en detalle.',
+      p3_af: 'Registro informal, frases cortísimas y fórmulas fijas como «yo cuando…»; usa ironía y exageración.', p3_ej: 'En E3, «yo cuando dicen: saquen una hoja» usa la fórmula fija y exagera el susto con la foto del perro.',
+      p4_af: 'Plantilla conocida + texto breve que la rellena con algo nuevo (remezcla).', p4_ej: 'En E1, las etiquetas sobre cada personaje crean el chiste. El texto remata, no explica.',
+      p5_af: 'Quienes crean memes, los remezclan y comentan forman una comunidad discursiva; quienes solo miran son audiencia.', p5_ej: 'Para entender E1 hace falta el guiño interno: conocer la plantilla y haber vivido la situación.',
+      plataforma: 'Instagram', comprob: 'Buscamos memes en tres plataformas y encontramos más, y más recientes, en Instagram.',
+      c1_av: 'La imagen ocupa casi toda la pantalla y el texto que la acompaña queda debajo, en segundo plano.', c1_fu: 'Observación de nuestros ejemplos',
+      c2_av: 'Imágenes y videos; el sentido se reparte entre la imagen y el texto escrito sobre ella.', c2_fu: 'Centro de ayuda de la plataforma',
+      c3_av: 'Dar me gusta, comentar, guardar, enviar por mensaje y compartir en historias.', c3_fu: 'Centro de ayuda de la plataforma',
+      c4_av: 'Las publicaciones quedan en el perfil; las historias desaparecen a las 24 horas.', c4_fu: 'Centro de ayuda de la plataforma',
+      c5_av: 'La plataforma recomienda lo que recibe más reacciones y más envíos.', c5_fu: 'Informe de uso de redes (fuente 2)',
+      hip1: 'En Instagram, el meme adopta la forma de una imagen con muy poco texto porque se avanza deslizando y cada publicación tiene apenas un par de segundos para llamar la atención.',
+      hip2: 'En Instagram, el meme reutiliza plantillas y no lleva firma porque cualquiera puede guardar la imagen y volver a publicarla con otro texto.',
+      cambio: 'En TikTok, la misma idea deja de ser una imagen y se convierte en un video corto con un audio de moda.',
+      f1_aut: 'Plataforma estudiada (dato de ejemplo)', f1_tit: 'Centro de ayuda', f1_anio: '2026', f1_link: 'https://ejemplo.invalid/centro-de-ayuda',
+      f2_aut: 'Informe de uso de redes (dato de ejemplo)', f2_tit: 'Informe anual', f2_anio: '2026', f2_link: 'https://ejemplo.invalid/informe',
+      org: 'Apertura: Uno · Propiedades: Dos · Plataforma: Tres · Conexión y conclusión: Uno · Fuentes y preguntas: todos',
+      ia: 'Sí, para que nos explicara qué significa «multimodalidad» y para revisar la ortografía.',
+      fficha: '2026-11-20', fexpo: '2026-11-27', estado: ESTADOS[1]
+    });
+    E(1, 'Plantilla del «novio distraído»: él es «yo», la otra chica es «ver una serie» y la novia es «la prueba de mañana».', 'Instagram, cuenta pública de memes estudiantiles', 'Publicado en oct. 2026; capturado el 3 de nov.', '12 mil me gusta, 300 comentarios', 'Típico: plantilla famosa + situación escolar.');
+    E(2, 'Plantilla de «Drake»: rechaza «empezar el trabajo con tiempo» y aprueba «hacerlo la noche anterior».', 'X, cuenta personal pública (nombre tapado)', 'Publicado en sept. 2026; capturado el 3 de nov.', '2 mil reposteos', 'La misma idea en otra plataforma: sirve para comparar.');
+    E(3, 'Foto de un perro con cara de susto y el texto «yo cuando dicen: saquen una hoja».', 'Instagram, cuenta de humor chileno', 'Publicado en nov. 2026; capturado el 4 de nov.', '8 mil me gusta', 'No usa plantilla famosa, pero mantiene la estructura.');
+    E(4, 'Una marca de comida rápida usa una plantilla de moda para promocionar una oferta.', 'Instagram, cuenta oficial de una marca', 'Publicado en oct. 2026; capturado el 4 de nov.', '900 me gusta', 'Caso «raro»: el propósito cambia (vender).');
+    [1, 2, 3, 4, 5].forEach(n => { d.pasos[n] = true; }); [1, 2, 3].forEach(n => { d.check[n] = true; });
+    const t = now(); Object.keys(d.f).forEach(k => { d.m['f:' + k] = t; }); d.c = t; d.t = Date.now();
+    return d;
+  }
+  if (TEST) {
+    $('#testBar').hidden = false; document.title = 'PRUEBA · ' + document.title;
+    $('#demoBtn').onclick = () => replaceAll(demoState(), 'Se cargaron datos de ejemplo (el grupo modelo).');
   }
 
   /* ------------------------------------------------------------ navegación */
@@ -469,7 +595,9 @@
   function route() {
     if (closeModal) closeModal(false);
     const h = decodeURIComponent(location.hash.slice(1));
-    if (h.startsWith('g=')) { show('avance'); importFromHash(h.slice(2)); return; }
+    hideViewer();
+    const sh = /^([gv])=(.+)$/.exec(h);
+    if (sh) { show('avance'); openShared(sh[1], sh[2]); return; }
     let view = 'inicio', target = null;
     if (VIEWS.includes(h)) view = h;
     else if (/^paso-\d$/.test(h) || /^etapa-\d$/.test(h)) { view = 'ruta'; target = document.getElementById(h); }
