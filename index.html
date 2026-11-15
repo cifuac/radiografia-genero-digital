@@ -1,16 +1,17 @@
 <!doctype html>
-<html lang="es" data-theme="dark">
+<html lang="es" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Radiografía de un género digital</title>
 <meta name="description" content="Guía paso a paso, ficha de investigación y rúbrica para la exposición oral grupal sobre un género digital. Lengua y Literatura, 3° medio.">
-<meta name="theme-color" content="#0a0a1f">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0a1f'/%3E%3Crect x='20' y='10' width='24' height='44' rx='5' fill='none' stroke='%23a78bff' stroke-width='3'/%3E%3Cpath d='M25 26h14M25 33h14M25 40h8' stroke='%23a78bff' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#ffffff">
+<script>try{var t=localStorage.getItem("rgd:theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2306142a'/%3E%3Crect x='20' y='10' width='24' height='44' rx='5' fill='none' stroke='%235cc8ee' stroke-width='3'/%3E%3Cpath d='M25 26h14M25 33h14M25 40h8' stroke='%235cc8ee' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=3">
+<link rel="stylesheet" href="css/styles.css?v=5">
 </head>
 <body>
 
@@ -21,7 +22,8 @@
   </a>
   <a class="pill" href="#avance" id="topPill" aria-label="Ver avance">0/9</a>
   <button class="icon-btn" id="themeBtn" type="button" aria-label="Cambiar entre modo claro y oscuro">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg>
+    <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg>
+    <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.900 4.900l1.400 1.400M17.700 17.700l1.400 1.400M2 12h2M20 12h2M4.900 19.100l1.400-1.400M17.700 6.300l1.400-1.400"/></svg>
   </button>
 </header>
 
@@ -30,13 +32,12 @@
 <!-- ============================================================ INICIO -->
 <section class="view" id="v-inicio" data-view="inicio">
   <div class="hero">
-    <div class="hero-art"><img src="img/hero.webp" width="1280" height="714" alt="Ilustración: una mano vista en rayos X sostiene un teléfono; en la pantalla se ve la estructura interna de una publicación" fetchpriority="high"></div>
-    <div class="hero-txt">
-      <p class="eyebrow">Lengua y Literatura · 3° medio · Unidad 3</p>
-      <h1>Radiografía de un <span class="gradtxt">género digital</span></h1>
-      <p class="lead">Exposición oral grupal: guía paso a paso, ficha de investigación y rúbrica.</p>
-    </div>
+    <div class="plate"><img src="img/hero.webp" width="1280" height="714" alt="Ilustración: una mano vista en rayos X sostiene un teléfono; en la pantalla se ve la estructura interna de una publicación" fetchpriority="high"></div>
+    <p class="eyebrow">Lengua y Literatura · 3° medio · Unidad 3</p>
+    <h1>Radiografía de un <mark>género digital</mark></h1>
+    <p class="lead">Exposición oral grupal: guía paso a paso, ficha de investigación y rúbrica.</p>
   </div>
+
 
   <div class="facts">
     <div><small>Modalidad</small><b>Grupos de 3 a 4</b></div>
@@ -111,8 +112,8 @@
   <p class="vsub">Tres etapas, nueve pasos. Toquen un paso para abrirlo.</p>
 
   <!-- ETAPA 1 -->
-  <div class="etapa has-img" id="etapa-1">
-    <div class="etapa-art"><img src="img/etapa1.webp" width="1280" height="714" alt="Ilustración: una lupa examina publicaciones de redes sociales vistas en rayos X" loading="lazy"></div>
+  <div class="etapa" id="etapa-1">
+    <div class="etapa-art"><img src="img/etapa1.webp" width="1280" height="714" alt="Ilustración: una lupa examina publicaciones de redes sociales vistas en rayos X"></div>
     <div><p class="eyebrow">Etapa 1 · Pasos 1 a 5</p><h2>Investigación</h2><p>Al terminar, entreguen la ficha de investigación.</p><div class="bar"><i data-bar="1"></i></div></div>
   </div>
 
@@ -287,7 +288,7 @@
   </details>
 
   <!-- ETAPA 2 -->
-  <div class="etapa has-img" id="etapa-2">
+  <div class="etapa" id="etapa-2">
     <div class="etapa-art"><img src="img/etapa2.webp" width="1280" height="714" alt="Ilustración: una mesa de trabajo con un computador, tarjetas de apuntes y un cronómetro, vista en rayos X" loading="lazy"></div>
     <div><p class="eyebrow">Etapa 2 · Pasos 6 a 8</p><h2>Preparación</h2><p>Guion, material de apoyo y ensayo.</p><div class="bar"><i data-bar="2"></i></div></div>
   </div>
@@ -354,7 +355,7 @@
   </details>
 
   <!-- ETAPA 3 -->
-  <div class="etapa has-img" id="etapa-3">
+  <div class="etapa" id="etapa-3">
     <div class="etapa-art"><img src="img/etapa3.webp" width="1280" height="714" alt="Ilustración: tres estudiantes exponen frente a una pantalla ante su curso" loading="lazy"></div>
     <div><p class="eyebrow">Etapa 3 · Paso 9</p><h2>Exposición</h2><p>El día de la presentación.</p><div class="bar"><i data-bar="3"></i></div></div>
   </div>
@@ -481,12 +482,13 @@
 
 <div class="modal" id="modal" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="modalT">
+    <div class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 11v5.500M12 7.500v.01"/><circle cx="12" cy="12" r="9"/></svg></div>
     <h2 id="modalT"></h2>
     <p id="modalP"></p>
     <div class="cta-row"><button class="btn primary" type="button" id="modalOk"></button><button class="btn" type="button" id="modalNo">Cancelar</button></div>
   </div>
 </div>
 
-<script src="js/app.js?v=3"></script>
+<script src="js/app.js?v=5"></script>
 </body>
 </html>

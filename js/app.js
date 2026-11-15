@@ -260,18 +260,20 @@
   let toastT;
   function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 3200); }
   function grow(el) { if (el.tagName === 'TEXTAREA' && el.offsetParent) { el.style.height = 'auto'; el.style.height = (el.scrollHeight + 2) + 'px'; } }
-  function ask(title, text, okLabel) {
+  function ask(title, text, okLabel, danger) {
     return new Promise(res => {
-      const m = $('#modal'); $('#modalT').textContent = title; $('#modalP').textContent = text; $('#modalOk').textContent = okLabel; m.hidden = false;
+      const m = $('#modal'); $('#modalT').textContent = title; $('#modalP').textContent = text; $('#modalOk').textContent = okLabel; m.classList.toggle('is-danger', !!danger); m.hidden = false;
       const done = v => { m.hidden = true; $('#modalOk').onclick = $('#modalNo').onclick = null; res(v); };
       $('#modalOk').onclick = () => done(true); $('#modalNo').onclick = () => done(false);
     });
   }
 
-  document.addEventListener('input', e => {
-    const k = e.target.dataset && e.target.dataset.k; if (!k) return;
+  const onField = e => {
+    const k = e.target.dataset && e.target.dataset.k; if (!k || S.f[k] === e.target.value) return;
     S.f[k] = e.target.value; grow(e.target); save();
-  });
+  };
+  document.addEventListener('input', onField);
+  document.addEventListener('change', onField);
   document.addEventListener('toggle', e => { if (e.target.open) $$('textarea', e.target).forEach(grow); }, true);
 
   document.addEventListener('click', async e => {
@@ -293,16 +295,14 @@
 
   $('#rubClear').onclick = () => { S.rub = {}; save(); };
   $('#resetBtn').onclick = async () => {
-    if (!(await ask('Borrar todo', 'Se borrarán la ficha, los pasos marcados y la autoevaluación guardados en este celular. No se puede deshacer.', 'Borrar todo'))) return;
+    if (!(await ask('Borrar todo', 'Se borrarán la ficha, los pasos marcados y la autoevaluación guardados en este celular. No se puede deshacer.', 'Borrar todo', true))) return;
     S = blank(); flush(); renderFicha(); refresh(); toast('Se borró lo guardado en este celular.');
   };
 
   /* tema claro / oscuro */
-  function setTheme(t) { document.documentElement.dataset.theme = t; const m = $('meta[name="theme-color"]'); if (m) m.content = t === 'light' ? '#f5f3ff' : '#0a0a1f'; }
-  let theme = 'dark';
-  try { theme = localStorage.getItem(THEME_KEY) || theme; } catch (e) { /* sin almacenamiento */ }
-  setTheme(theme);
-  $('#themeBtn').onclick = () => { theme = theme === 'dark' ? 'light' : 'dark'; setTheme(theme); try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* sin almacenamiento */ } };
+  function setTheme(t) { document.documentElement.dataset.theme = t; const m = $('meta[name="theme-color"]'); if (m) m.content = t === 'light' ? '#ffffff' : '#0d2236'; }
+  setTheme(document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light');
+  $('#themeBtn').onclick = () => { const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; setTheme(t); try { localStorage.setItem(THEME_KEY, t); } catch (e) { /* sin almacenamiento */ } };
 
   /* ------------------------------------------------------------ compartir */
   const b64 = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
