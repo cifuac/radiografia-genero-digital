@@ -300,6 +300,7 @@ select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),
 .on>.box,.box.on{background:var(--ok);border-color:var(--ok)}
 .on>.box::after,.box.on::after{content:"";position:absolute;left:6px;top:6px;width:10px;height:5px;border-left:2.5px solid #06281a;border-bottom:2.5px solid #06281a;transform:rotate(-45deg)}
 .chk span{flex:1;font-size:.95rem}
+.chk .box{flex:none}
 .send{display:grid;gap:10px}
 .status{min-height:1.4em;color:var(--muted);font-size:.9rem;margin:0}
 .status.ok{color:var(--ok)}
