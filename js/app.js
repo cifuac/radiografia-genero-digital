@@ -387,7 +387,7 @@
         const data = {
           id: S.id, curso: val('curso'), integrantes: ['int1', 'int2', 'int3', 'int4'].map(val).filter(Boolean).join(', '), genero: val('genero'),
           pasos: st.pasos.length, pasosDetalle: st.pasos.join(', '), fichaPct: st.pct, checklist: st.checks, estado: val('estado') || ESTADOS[0],
-          fechaFicha: fecha(val('fficha')), fechaExpo: fecha(val('fexpo')), plataforma: val('plataforma'), auto: st.rubN === RUB.length ? st.rubPts : '', link, ficha: fichaTexto()
+          fechaFicha: fecha(val('fficha')), fechaExpo: fecha(val('fexpo')), plataforma: val('plataforma'), auto: st.rubN === RUB.length ? st.rubPts : '', link, ficha: fichaTexto().trim().replace(/\n+/g, ' // ')
         };
         const body = new URLSearchParams();
         Object.entries(CONFIG.fields).forEach(([k, entry]) => body.append(entry, String(data[k] == null ? '' : data[k])));
